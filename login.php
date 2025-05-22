@@ -1,6 +1,13 @@
 <?php
 
+function redirectToUrl(string $url): never
+{
+    header("Location: {$url}");
+    exit();
+}
+
 $postData = $_POST;
+//$sessionData = $_SESSION['user_name'] ?? [];
 $users = [
     [
         'user_name' => 'alice',
@@ -18,9 +25,9 @@ if (isset($postData['user_name']) && isset($postData['user_password'])) {
             $loggedUser = [
                 'user_name' => $postData['user_name'],
             ];
+            $_SESSION['user_name'] = $loggedUser['user_name'];
         }
     }
-
 
     if (!isset($loggedUser)) {
         $errorMessage = sprintf(
@@ -28,6 +35,9 @@ if (isset($postData['user_name']) && isset($postData['user_password'])) {
             $postData['user_name'],
             strip_tags($postData['user_password'])
         );
+    }
+    else {
+        redirectToUrl("dashboard.php");
     }
 }
 ?>
