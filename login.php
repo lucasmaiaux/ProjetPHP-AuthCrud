@@ -1,74 +1,88 @@
 <?php
+session_start();
 
-function redirectToUrl(string $url): never
-{
-    header("Location: {$url}");
+// Vérifier si l'utilisateur est déjà connecté
+if (isset($_SESSION['username'])) {
+    header("Location: dashboard.php");
     exit();
 }
 
-$postData = $_POST;
-//$sessionData = $_SESSION['user_name'] ?? [];
+// Tableau associatif des utilisateurs
 $users = [
-    [
-        'user_name' => 'alice',
-        'user_password' => '1234',
-    ]
+    'alice' => '1234',
+    'bob' => '5678'
 ];
 
-// Validation du formulaire
-if (isset($postData['user_name']) && isset($postData['user_password'])) {
-    foreach ($users as $user) {
-        if (
-            $postData['user_name'] === $user['user_name'] &&
-            $postData['user_password'] === $user['user_password']
-        ) {
-            $loggedUser = [
-                'user_name' => $postData['user_name'],
-            ];
-            $_SESSION['user_name'] = $loggedUser['user_name'];
-        }
-    }
+// Traitement du formulaire
+$error = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = $_POST['username'] ?? '';
+    $password = $_POST['password'] ?? '';
 
-    if (!isset($loggedUser)) {
-        $errorMessage = sprintf(
-            'Les informations envoyées ne permettent pas de vous identifier : (%s/%s)',
-            $postData['user_name'],
-            strip_tags($postData['user_password'])
-        );
-    }
-    else {
-        redirectToUrl("dashboard.php");
+    if (isset($users[$username]) && $users[$username] === $password) {
+        $_SESSION['username'] = $username;
+        header("Location: dashboard.php");
+        exit();
+    } else {
+        $error = "Identifiants incorrects";
     }
 }
 ?>
 
-<!-- Si utilisateur/trice est non identifié(e), on affiche le formulaire -->
-<?php if (!isset($loggedUser)): ?>
-    <form action="index.php" method="POST">
+<!DOCTYPE html>
+<html>
 
-        <!-- si message d'erreur on l'affiche -->
-        <?php if (isset($errorMessage)): ?>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://mdbcdn.b-cdn.net/wp-content/themes/mdbootstrap4/docs-app/css/dist/mdb5/standard/core.min.css">
+    <link rel="stylesheet" id="roboto-subset.css-css"
+        href="https://mdbcdn.b-cdn.net/wp-content/themes/mdbootstrap4/docs-app/css/mdb5/fonts/roboto-subset.css?ver=3.9.0-update.5"
+        type="text/css" media="all">
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+    <div class="container">
+
+        <h1>Connexion</h1>
+
+        <!-- Formulaire de connexion -->
+        <?php //require_once(__DIR__ . '/login.php'); ?>
+
+        <?php if ($error): ?>
             <div class="alert alert-danger" role="alert">
-                <?php echo $errorMessage; ?>
+                <?php echo $error; ?>
             </div>
         <?php endif; ?>
 
-        <div class="mb-3">
-            <label for="user_name" class="form-label">Username</label>
-            <input type="text" class="form-control" id="user_name" name="user_name">
+        <form method="POST">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password">
+            </div>
+            <button type="submit" class="btn btn-primary">Envoyer</button>
+        </form>
+
+
+        <!-- Infos user -->
+        <div class="container">
+            SID : <?php echo session_id() ?><br>
+            <?php if (isset($_SESSION['username'])): ?>
+                Username (session) : <?php echo $_SESSION['username'] ?>
+                <a href="logout.php">Logout</a>
+            <?php endif; ?>
         </div>
 
-        <div class="mb-3">
-            <label for="user_password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="user_password" name="user_password">
-        </div>
-
-        <button type="submit" class="btn btn-primary">Envoyer</button>
-    </form>
-
-    <!-- Si utilisateur/trice bien connectée on affiche un message de succès -->
-<?php else: ?>
-    <div class="alert alert-success" role="alert">
-        Bonjour <?php echo $loggedUser['user_name']; ?> et bienvenue sur le site !
     </div>
-<?php endif; ?>
+
+</body>
+
+</html>

@@ -1,6 +1,11 @@
 <?php
-Session_start();
-Session_destroy();
-header('Location: ' . $_SERVER['HTTP_REFERER']);
+session_start();
 
+// Détruire la session
+session_unset();
+session_destroy();
+
+// Rediriger vers la page de connexion
+header("Location: login.php");
+exit();
 ?>
